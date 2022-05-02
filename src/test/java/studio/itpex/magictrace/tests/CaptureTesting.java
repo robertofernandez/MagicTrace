@@ -41,7 +41,7 @@ public class CaptureTesting {
         System.out.println(file.getAbsolutePath());
         Webcam webcam = Webcam.getDefault();
         webcam.open();
-        ImageIO.write(webcam.getImage(), "jpg", new File("output/test1.jpg"));
+        ImageIO.write(webcam.getImage(), "jpg", new File("output/test2.jpg"));
     }
 
 }
