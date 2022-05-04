@@ -1,25 +1,32 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>studio.itpex.apps</groupId>
-  <artifactId>magic-trace</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <name>Magic Trace</name>
-  <description>Desktop application to trace drawings</description>
-  <dependencies>
-  	<dependency>
-  		<groupId>com.github.sarxos</groupId>
-  		<artifactId>webcam-capture</artifactId>
-  		<version>0.3.10</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.slf4j</groupId>
-  		<artifactId>slf4j-log4j12</artifactId>
-  		<version>1.7.36</version>
-  	</dependency>
-      <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-api</artifactId>
-        <version>1.7.2</version>
-      </dependency>
-  </dependencies>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>studio.itpex.apps</groupId>
+	<artifactId>magic-trace</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>Magic Trace</name>
+	<description>Desktop application to trace drawings</description>
+	<dependencies>
+		<dependency>
+			<groupId>com.github.sarxos</groupId>
+			<artifactId>webcam-capture</artifactId>
+			<version>0.3.10</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.7.36</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.8.5</version>
+		</dependency>
+	</dependencies>
 </project>
