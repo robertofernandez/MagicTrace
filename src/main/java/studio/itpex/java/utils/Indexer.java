@@ -8,8 +8,8 @@ package studio.itpex.java.utils;
  */
 public class Indexer {
     private int[] indexedArray;
-    int width;
-    int height;
+    private int width;
+    private int height;
 
     public Indexer(int[] input, int width, int height) throws Exception {
         super();
@@ -56,6 +56,14 @@ public class Indexer {
             return;
         }
         indexedArray[index] = value;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
     }
 
 }

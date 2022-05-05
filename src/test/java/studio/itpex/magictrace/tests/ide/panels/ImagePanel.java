@@ -62,6 +62,11 @@ public class ImagePanel extends JInternalFrame {
 
     public ImagePanel(ColorMap colorMap, String title) {
         super(title, true, true, true, true);
+        this.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+        setMap(colorMap);
+    }
+
+    public void setMap(ColorMap colorMap) {
         imageWidth = colorMap.getWidth();
         imageHeight = colorMap.getHeight();
         setRed(colorMap.getRed());
@@ -70,7 +75,6 @@ public class ImagePanel extends JInternalFrame {
         fillAlpha();
         recompose();
         updateImage();
-        this.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
         this.init(image);
     }
 
