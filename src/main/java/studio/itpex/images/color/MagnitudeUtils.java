@@ -5,6 +5,10 @@ public class MagnitudeUtils {
         return Math.sqrt(red * blue * blue + green * green * blue + red * red * green);
     }
 
+    public static double getCubicMagnitude(int red, int green, int blue) {
+        return red * blue * blue + green * green * blue + red * red * green;
+    }
+
     public static int getAbsouluteMagnitude(double magnitude) {
         double output = magnitude * 256 / getMagnitude(256, 256, 256);
         return (int) (Math.round(output));

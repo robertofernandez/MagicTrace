@@ -15,22 +15,25 @@ import org.apache.log4j.PropertyConfigurator;
 import com.github.sarxos.webcam.Webcam;
 
 import studio.itpex.images.color.ColorsUtils;
+import studio.itpex.images.color.PaintUtils;
 import studio.itpex.images.mapping.ColorMap;
 import studio.itpex.images.utils.GeometryUtils;
 import studio.itpex.images.utils.ImageRepresentation;
 import studio.itpex.magictrace.tests.ide.panels.ImagePanel;
 
-public class MagicTraceTestIde extends JFrame {
-
+public class MagicTraceTestIde2 extends JFrame {
     private static final int FRAME_TIME = 50;
     public static boolean SHOW_TEEMO = true;
     public static final int desktopWidth = 1200;
     public static final int desktopHeight = 680;
     private JDesktopPane mainDesktopPane;
     private static final long serialVersionUID = 6733330978640433656L;
+    private static final String VERSION = "0.2";
     private ImagePanel cameraPanel;
     private ImagePanel tracePanel;
+    private ImagePanel resultPanel;
     private static double proportion = 0.8;
+    private static ColorMap teemoImageMap;
 
     public static void main(String[] args) {
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
@@ -42,7 +45,7 @@ public class MagicTraceTestIde extends JFrame {
 
     protected static void createAndShowGUI() {
         CurrentMagicTraceTestIdeMaps currentMaps = new CurrentMagicTraceTestIdeMaps();
-        MagicTraceTestIde ide = new MagicTraceTestIde();
+        MagicTraceTestIde2 ide = new MagicTraceTestIde2();
         ide.pack();
         ide.setVisible(true);
         new Thread(new Runnable() {
@@ -56,10 +59,10 @@ public class MagicTraceTestIde extends JFrame {
                     webcam.open();
                     System.out.println("Camera open");
 
-                    File teemoFile = new File("E:\\tmp\\teemo2.jpg");
+                    File teemoFile = new File("E:\\tmp\\hilda1.jpg");
 
                     BufferedImage teemoImage = null;
-                    ColorMap teemoImageMap = null;
+                    teemoImageMap = null;
                     try {
                         teemoImage = ImageIO.read(teemoFile);
 
@@ -94,11 +97,12 @@ public class MagicTraceTestIde extends JFrame {
 
                     // for (int i = 0; i < 190; i++) {
                     for (;;) {
-                        //System.out.println("sleeping " + i);
+                        // System.out.println("sleeping " + i);
                         Thread.sleep(FRAME_TIME);
                         if (teemoImageMap != null && SHOW_TEEMO) {
                             updateImageFromCameraMixing(ide, webcam, teemoImageMap, proportion, currentMaps);
                             updateImageFromCurrentMap(ide.getTracePanel(), currentMaps.getCameraMap());
+                            updateImageFromCurrentMap(ide.getResultPanel(), currentMaps.getResultMap());
                         } else {
                             updateImageFromCamera(ide, webcam);
                         }
@@ -110,15 +114,17 @@ public class MagicTraceTestIde extends JFrame {
         }).start();
     }
 
-    public MagicTraceTestIde() {
-        this.setTitle("Magic Trace Test IDE");
+    public MagicTraceTestIde2() {
+        this.setTitle("Magic Trace Test IDE " + VERSION);
         mainDesktopPane = new JDesktopPane();
         mainDesktopPane.setPreferredSize(new Dimension(desktopWidth, desktopHeight));
 
-        cameraPanel = new ImagePanel("Combined Area");
-        mainDesktopPane.add(cameraPanel);
         tracePanel = new ImagePanel("Trace Area");
         mainDesktopPane.add(tracePanel);
+        cameraPanel = new ImagePanel("Combined Area");
+        mainDesktopPane.add(cameraPanel);
+        resultPanel = new ImagePanel("Aproximate result");
+        mainDesktopPane.add(resultPanel);
 
         this.getContentPane().add("North", mainDesktopPane);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -132,7 +138,7 @@ public class MagicTraceTestIde extends JFrame {
         return tracePanel;
     }
 
-    private static void updateImageFromCamera(MagicTraceTestIde ide, Webcam webcam) throws Exception {
+    private static void updateImageFromCamera(MagicTraceTestIde2 ide, Webcam webcam) throws Exception {
         BufferedImage image = webcam.getImage();
         System.out.println("Image retrieved");
         ImageRepresentation representation = new ImageRepresentation(image);
@@ -154,13 +160,13 @@ public class MagicTraceTestIde extends JFrame {
         // panel.updateImage();
     }
 
-    private static void updateImageFromMap(ColorMap imageMap, MagicTraceTestIde ide) throws Exception {
+    private static void updateImageFromMap(ColorMap imageMap, MagicTraceTestIde2 ide) throws Exception {
         ide.getCameraPanel().setMap(imageMap);
         // ide.getCameraPanel().updateImage();
         System.out.println("Image updated");
     }
 
-    private static void updateImageFromCameraMixing(MagicTraceTestIde ide, Webcam webcam, ColorMap mixingMap,
+    private static void updateImageFromCameraMixing(MagicTraceTestIde2 ide, Webcam webcam, ColorMap mixingMap,
             double proportion, CurrentMagicTraceTestIdeMaps currentMaps) throws Exception {
         BufferedImage lastCameraImage = webcam.getImage();
         System.out.println("Image retrieved");
@@ -173,13 +179,19 @@ public class MagicTraceTestIde extends JFrame {
         ColorMap enlargedMap = GeometryUtils.enlargeRegion(imageMap, lastCameraImage.getWidth() * 2,
                 lastCameraImage.getHeight() * 2, 0, 0, lastCameraImage.getWidth(), lastCameraImage.getHeight());
         ColorMap mixedMap = ColorsUtils.mixMaps(enlargedMap, mixingMap, proportion);
+        ColorMap resultMap = PaintUtils.paintUsingMagnitudeAndColors(teemoImageMap, enlargedMap);
 
         currentMaps.setCameraMap(enlargedMap);
         currentMaps.setMixedMap(mixedMap);
+        currentMaps.setResultMap(resultMap);
 
         ide.getCameraPanel().setMap(mixedMap);
         // ide.getCameraPanel().updateImage();
         System.out.println("Image updated");
+    }
+
+    public ImagePanel getResultPanel() {
+        return resultPanel;
     }
 
 }

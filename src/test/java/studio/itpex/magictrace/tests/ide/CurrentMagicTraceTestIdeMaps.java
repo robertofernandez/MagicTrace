@@ -6,6 +6,7 @@ public class CurrentMagicTraceTestIdeMaps {
 
     private ColorMap cameraMap;
     private ColorMap mixedMap;
+    private ColorMap resultMap;
 
     public ColorMap getCameraMap() {
         return cameraMap;
@@ -21,5 +22,13 @@ public class CurrentMagicTraceTestIdeMaps {
 
     public void setMixedMap(ColorMap mixedMap) {
         this.mixedMap = mixedMap;
+    }
+
+    public ColorMap getResultMap() {
+        return resultMap;
+    }
+
+    public void setResultMap(ColorMap resultMap) {
+        this.resultMap = resultMap;
     }
 }
