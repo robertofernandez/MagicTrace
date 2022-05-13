@@ -45,6 +45,7 @@ public class ImagePanel extends JInternalFrame {
     private int[] blue;
     private int[] alpha;
     private int id;
+    private int decoration = 1;
 
     /**
      * 
@@ -125,12 +126,14 @@ public class ImagePanel extends JInternalFrame {
             // array of pixels where we want to save the numerical
             // representation of the image that we are going to manipulate
             PixelGrabber pixelGrabber = new PixelGrabber(image, 0, 0, imageWidth, imageHeight, map, 0, imageWidth);
-            if (!(pixelGrabber.grabPixels() && ((pixelGrabber.getStatus() & ImageObserver.ALLBITS) != 0))) {
-                throw new Exception("Not all bits loaded");
-            }
+            //FIXME check why this happens
+//            if (!(pixelGrabber.grabPixels() && ((pixelGrabber.getStatus() & ImageObserver.ALLBITS) != 0))) {
+//                throw new Exception("Not all bits loaded");
+//            }
         } catch (Exception e) {
             System.out.println(e);
         }
+        getRootPane().setWindowDecorationStyle(decoration);
     }
 
     public void paint(Graphics g) {
@@ -267,5 +270,9 @@ public class ImagePanel extends JInternalFrame {
 
     public void setImage(BufferedImage inputImage) {
         init(inputImage);
+    }
+    
+    public void setDecoration(int decoration) {
+        this.decoration = decoration;
     }
 }
