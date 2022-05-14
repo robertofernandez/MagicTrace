@@ -12,6 +12,7 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 import javax.swing.JDesktopPane;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -46,11 +47,15 @@ public class MagicTraceTestIde3 extends JFrame {
 
     private ImagePanel[] allViews = new ImagePanel[2];
     private String[] currentViews = new String[2];
-    private int currentTargetedView = 0;
+    private int currentTargetedView = 1;
 
     private JMenuBar menuBar;
+
+    private JMenu fileMenu;
+
     private JMenu operationsMenu;
     private JMenu viewsMenu;
+    private ColorMap currentReferenceImageMap;
 
     public static void main(String[] args) {
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
@@ -67,9 +72,9 @@ public class MagicTraceTestIde3 extends JFrame {
         ide.pack();
         ide.setVisible(true);
         new Thread(new Runnable() {
+
             public void run() {
                 try {
-
                     ide.initialize();
                     String log4jConfPath = "src/main/resources/config/log4j.properties";
                     PropertyConfigurator.configure(log4jConfPath);
@@ -79,18 +84,18 @@ public class MagicTraceTestIde3 extends JFrame {
                     webcam.open();
                     System.out.println("Camera open");
 
-                    File teemoFile = new File("E:\\tmp\\teemo2.jpg");
+                    File baseFile = new File("src/main/resources/img/base.png");
 
-                    BufferedImage teemoImage = null;
-                    ColorMap teemoImageMap = null;
+                    BufferedImage referenceImage = null;
+                    ide.setCurrentReferenceImageMap(null);
                     try {
-                        teemoImage = ImageIO.read(teemoFile);
+                        referenceImage = ImageIO.read(baseFile);
 
                         // MediaTracker object is used to block the task
                         // until image is loaded, or 10 seconds elapses
                         // since load starting moment
                         MediaTracker tracker = new MediaTracker(ide);
-                        tracker.addImage(teemoImage, 1);
+                        tracker.addImage(referenceImage, 1);
                         if (!tracker.waitForID(1, 30000)) {
                             System.out.println("Error loading image");
                             System.exit(1);
@@ -101,16 +106,15 @@ public class MagicTraceTestIde3 extends JFrame {
                         System.out.println(e);
                     }
 
-                    if (teemoImage != null && SHOW_TEEMO) {
-                        ImageRepresentation teemoRepresentation = new ImageRepresentation(teemoImage);
-                        teemoImageMap = new ColorMap(teemoImage.getWidth(), teemoImage.getHeight());
-                        teemoImageMap.setRed(teemoRepresentation.getRed());
-                        teemoImageMap.setGreen(teemoRepresentation.getGreen());
-                        teemoImageMap.setBlue(teemoRepresentation.getBlue());
-
-                        // updateImageFromMap(teemoImageMap, ide);
-
-                        updateImageFromCameraMixing(ide, webcam, teemoImageMap, proportion, currentMaps);
+                    if (referenceImage != null && SHOW_TEEMO) {
+                        ImageRepresentation teemoRepresentation = new ImageRepresentation(referenceImage);
+                        ColorMap baseReferenceImageMap = new ColorMap(referenceImage.getWidth(),
+                                referenceImage.getHeight());
+                        baseReferenceImageMap.setRed(teemoRepresentation.getRed());
+                        baseReferenceImageMap.setGreen(teemoRepresentation.getGreen());
+                        baseReferenceImageMap.setBlue(teemoRepresentation.getBlue());
+                        ide.setCurrentReferenceImageMap(baseReferenceImageMap);
+                        updateImageFromCameraMixing(ide, webcam, baseReferenceImageMap, proportion, currentMaps);
                     } else {
                         updateImageFromCamera(ide, webcam);
                     }
@@ -119,8 +123,9 @@ public class MagicTraceTestIde3 extends JFrame {
                     for (;;) {
                         // System.out.println("sleeping " + i);
                         Thread.sleep(FRAME_TIME);
-                        if (teemoImageMap != null && SHOW_TEEMO) {
-                            updateImageFromCameraMixing(ide, webcam, teemoImageMap, proportion, currentMaps);
+                        if (ide.getCurrentReferenceImageMap() != null && SHOW_TEEMO) {
+                            updateImageFromCameraMixing(ide, webcam, ide.getCurrentReferenceImageMap(), proportion,
+                                    currentMaps);
                             updateImageFromCurrentMap(ide.getTracePanel(), currentMaps.getCameraMap());
                         } else {
                             updateImageFromCamera(ide, webcam);
@@ -136,7 +141,10 @@ public class MagicTraceTestIde3 extends JFrame {
     protected void initialize() {
         menuBar = new JMenuBar();
         operationsMenu = createOperationsMenu();
+        fileMenu = createFilesMenu(this);
         viewsMenu = createViewsMenu();
+        menuBar.add(fileMenu);
+        menuBar.add(operationsMenu);
         menuBar.add(operationsMenu);
         menuBar.add(viewsMenu);
         menuBar.add(createProportionsMenu());
@@ -156,6 +164,54 @@ public class MagicTraceTestIde3 extends JFrame {
         return menu;
     }
 
+    private JMenu createFilesMenu(MagicTraceTestIde3 ide) {
+        JMenu menu = new JMenu("Files");
+        JMenuItem openFile = new JMenuItem("Open...");
+        menu.add(openFile);
+        openFile.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser fileSelector = new JFileChooser();
+                int returnVal = fileSelector.showOpenDialog(ide);
+                if (returnVal == JFileChooser.APPROVE_OPTION) {
+                    File selectedFile = fileSelector.getSelectedFile();
+
+                    BufferedImage referenceImage = null;
+                    try {
+                        referenceImage = ImageIO.read(selectedFile);
+
+                        // MediaTracker object is used to block the task
+                        // until image is loaded, or 10 seconds elapses
+                        // since load starting moment
+                        MediaTracker tracker = new MediaTracker(ide);
+                        tracker.addImage(referenceImage, 1);
+                        if (!tracker.waitForID(1, 30000)) {
+                            System.out.println("Error loading image");
+                            System.exit(1);
+                        }
+
+                        if (referenceImage != null && SHOW_TEEMO) {
+                            ImageRepresentation teemoRepresentation = new ImageRepresentation(referenceImage);
+                            ColorMap referenceImageMap = new ColorMap(referenceImage.getWidth(),
+                                    referenceImage.getHeight());
+                            referenceImageMap.setRed(teemoRepresentation.getRed());
+                            referenceImageMap.setGreen(teemoRepresentation.getGreen());
+                            referenceImageMap.setBlue(teemoRepresentation.getBlue());
+                            ide.setCurrentReferenceImageMap(referenceImageMap);
+                        }
+                    } catch (InterruptedException ex) {
+                        trace("error", ex.getMessage(), ex);
+                    } catch (IOException ex) {
+                        trace("error", ex.getMessage(), ex);
+                    } catch (Exception e1) {
+                        trace("error", e1.getMessage(), e1);
+                    }
+                }
+            }
+        });
+        return menu;
+    }
+
     private JMenu createViewsMenu() {
         JMenu menu = new JMenu("Views");
         addViewMenuItem(menu, CAMERA_VIEW);
@@ -168,7 +224,7 @@ public class MagicTraceTestIde3 extends JFrame {
 
     private JMenu createProportionsMenu() {
         JMenu menu = new JMenu("Trace contrast");
-        for (int i = 10; i < 110; i+=10) {
+        for (int i = 10; i < 110; i += 10) {
             addProportionMenuItem(menu, i);
         }
         return menu;
@@ -319,4 +375,15 @@ public class MagicTraceTestIde3 extends JFrame {
         System.out.println("[" + level + "] " + message);
     }
 
+    private void trace(String level, String message, Exception ex) {
+        System.out.println("[" + level + "] " + message + " -> " + ex.getStackTrace());
+    }
+
+    public void setCurrentReferenceImageMap(ColorMap currentReferenceImageMap) {
+        this.currentReferenceImageMap = currentReferenceImageMap;
+    }
+
+    public ColorMap getCurrentReferenceImageMap() {
+        return currentReferenceImageMap;
+    }
 }
