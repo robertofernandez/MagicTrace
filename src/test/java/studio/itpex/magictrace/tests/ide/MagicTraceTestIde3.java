@@ -9,6 +9,8 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.imageio.ImageIO;
 import javax.swing.JDesktopPane;
@@ -26,6 +28,9 @@ import studio.itpex.images.color.ColorsUtils;
 import studio.itpex.images.mapping.ColorMap;
 import studio.itpex.images.utils.GeometryUtils;
 import studio.itpex.images.utils.ImageRepresentation;
+import studio.itpex.magictrace.calculations.CalculatedMaps;
+import studio.itpex.magictrace.calculations.FrameCalculation;
+import studio.itpex.magictrace.calculations.ResizeMap;
 import studio.itpex.magictrace.tests.ide.panels.ImagePanel;
 
 public class MagicTraceTestIde3 extends JFrame {
@@ -36,7 +41,6 @@ public class MagicTraceTestIde3 extends JFrame {
     private static final String CAMERA_VIEW = "Camera";
     public static final String VERSION = "0.3";
     private static final int FRAME_TIME = 50;
-    public static boolean SHOW_TEEMO = true;
     public static final int desktopWidth = 1200;
     public static final int desktopHeight = 680;
     private JDesktopPane mainDesktopPane;
@@ -57,6 +61,10 @@ public class MagicTraceTestIde3 extends JFrame {
     private JMenu viewsMenu;
     private ColorMap currentReferenceImageMap;
 
+    private CalculatedMaps calculatedMaps;
+    private HashMap<String, FrameCalculation> calculationsByName;
+    private PrioritizedCalculationsSet prioritizedCalculations;
+
     public static void main(String[] args) {
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
@@ -66,7 +74,7 @@ public class MagicTraceTestIde3 extends JFrame {
     }
 
     protected static void createAndShowGUI() {
-        CurrentMagicTraceTestIdeMaps currentMaps = new CurrentMagicTraceTestIdeMaps();
+        //CurrentMagicTraceTestIdeMaps currentMaps = new CurrentMagicTraceTestIdeMaps();
         MagicTraceTestIde3 ide = new MagicTraceTestIde3();
 
         ide.pack();
@@ -106,7 +114,7 @@ public class MagicTraceTestIde3 extends JFrame {
                         System.out.println(e);
                     }
 
-                    if (referenceImage != null && SHOW_TEEMO) {
+                    if (referenceImage != null) {
                         ImageRepresentation teemoRepresentation = new ImageRepresentation(referenceImage);
                         ColorMap baseReferenceImageMap = new ColorMap(referenceImage.getWidth(),
                                 referenceImage.getHeight());
@@ -114,7 +122,8 @@ public class MagicTraceTestIde3 extends JFrame {
                         baseReferenceImageMap.setGreen(teemoRepresentation.getGreen());
                         baseReferenceImageMap.setBlue(teemoRepresentation.getBlue());
                         ide.setCurrentReferenceImageMap(baseReferenceImageMap);
-                        updateImageFromCameraMixing(ide, webcam, baseReferenceImageMap, proportion, currentMaps);
+                        
+                        //updateImageFromCameraMixing(ide, webcam, baseReferenceImageMap, proportion, currentMaps);
                     } else {
                         updateImageFromCamera(ide, webcam);
                     }
@@ -123,10 +132,10 @@ public class MagicTraceTestIde3 extends JFrame {
                     for (;;) {
                         // System.out.println("sleeping " + i);
                         Thread.sleep(FRAME_TIME);
-                        if (ide.getCurrentReferenceImageMap() != null && SHOW_TEEMO) {
-                            updateImageFromCameraMixing(ide, webcam, ide.getCurrentReferenceImageMap(), proportion,
-                                    currentMaps);
-                            updateImageFromCurrentMap(ide.getTracePanel(), currentMaps.getCameraMap());
+                        if (ide.getCurrentReferenceImageMap() != null) {
+//                            updateImageFromCameraMixing(ide, webcam, ide.getCurrentReferenceImageMap(), proportion,
+//                                    currentMaps);
+//                            updateImageFromCurrentMap(ide.getTracePanel(), currentMaps.getCameraMap());
                         } else {
                             updateImageFromCamera(ide, webcam);
                         }
@@ -190,7 +199,7 @@ public class MagicTraceTestIde3 extends JFrame {
                             System.exit(1);
                         }
 
-                        if (referenceImage != null && SHOW_TEEMO) {
+                        if (referenceImage != null) {
                             ImageRepresentation teemoRepresentation = new ImageRepresentation(referenceImage);
                             ColorMap referenceImageMap = new ColorMap(referenceImage.getWidth(),
                                     referenceImage.getHeight());
@@ -262,6 +271,9 @@ public class MagicTraceTestIde3 extends JFrame {
         this.setTitle("Magic Trace Test IDE " + VERSION);
         mainDesktopPane = new JDesktopPane();
         mainDesktopPane.setPreferredSize(new Dimension(desktopWidth, desktopHeight));
+
+        calculatedMaps = new CalculatedMaps();
+        calculationsByName = new HashMap<>();
 
         panel0 = new ImagePanel("Panel 0");
         mainDesktopPane.add(panel0);
@@ -346,22 +358,30 @@ public class MagicTraceTestIde3 extends JFrame {
 
     private static void updateImageFromCameraMixing(MagicTraceTestIde3 ide, Webcam webcam, ColorMap mixingMap,
             double proportion, CurrentMagicTraceTestIdeMaps currentMaps) throws Exception {
+        
+        //WebcamScrapping
+        
+        /*
         BufferedImage lastCameraImage = webcam.getImage();
-        // System.out.println("Image retrieved");
         ImageRepresentation representation = new ImageRepresentation(lastCameraImage);
         ColorMap imageMap = new ColorMap(lastCameraImage.getWidth(), lastCameraImage.getHeight());
         imageMap.setRed(representation.getRed());
         imageMap.setGreen(representation.getGreen());
         imageMap.setBlue(representation.getBlue());
+        */
 
-        ColorMap enlargedMap = GeometryUtils.enlargeRegion(imageMap, lastCameraImage.getWidth() * 2,
-                lastCameraImage.getHeight() * 2, 0, 0, lastCameraImage.getWidth(), lastCameraImage.getHeight());
-        ColorMap mixedMap = ColorsUtils.mixMaps(enlargedMap, mixingMap, proportion);
+        //ResizeMap rm = new ResizeMap("webcam", "double-sized-webcam", 2, 2);
+        
+//        ColorMap enlargedMap = GeometryUtils.enlargeRegion(imageMap, lastCameraImage.getWidth() * 2,
+//                lastCameraImage.getHeight() * 2, 0, 0, lastCameraImage.getWidth(), lastCameraImage.getHeight());
 
-        currentMaps.setCameraMap(enlargedMap);
-        currentMaps.setMixedMap(mixedMap);
+        //MapsMixing
+        //ColorMap mixedMap = ColorsUtils.mixMaps(enlargedMap, mixingMap, proportion);
 
-        ide.getCameraPanel().setMap(mixedMap);
+//        currentMaps.setCameraMap(enlargedMap);
+//        currentMaps.setMixedMap(mixedMap);
+
+//        ide.getCameraPanel().setMap(mixedMap);
         // ide.getCameraPanel().updateImage();
         // System.out.println("Image updated");
     }
