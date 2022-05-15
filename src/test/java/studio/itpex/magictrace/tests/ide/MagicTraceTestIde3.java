@@ -4,6 +4,8 @@ import java.awt.Dimension;
 import java.awt.MediaTracker;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
@@ -291,8 +293,34 @@ public class MagicTraceTestIde3 extends JFrame {
         panel0.setTitle(TRANSPARENCY_TRACE_VIEW);
         panel1.setTitle(CAMERA_VIEW);
 
-        panel1.setFocusable(false);
-        panel0.setFocusable(false);
+        panel1.setFocusable(true);
+        panel0.setFocusable(true);
+        
+        panel0.addFocusListener(new FocusListener() {
+            @Override
+            public void focusLost(FocusEvent e) {
+            }
+
+            @Override
+            public void focusGained(FocusEvent e) {
+                currentTargetedView = 0;
+                System.out.println("view 0");
+            }
+        });
+        
+        panel1.addFocusListener(new FocusListener() {
+            
+            @Override
+            public void focusLost(FocusEvent e) {
+                
+            }
+            
+            @Override
+            public void focusGained(FocusEvent e) {
+                currentTargetedView = 1;
+                System.out.println("view 1");
+            }
+        });
         // cameraPanel.setDecoration(5);
 
         this.getContentPane().add("North", mainDesktopPane);
