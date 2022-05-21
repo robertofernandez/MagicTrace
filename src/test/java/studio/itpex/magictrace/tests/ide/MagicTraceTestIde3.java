@@ -49,10 +49,10 @@ public class MagicTraceTestIde3 extends JFrame {
     private static final long serialVersionUID = 6733330978640433656L;
     private ImagePanel panel0;
     private ImagePanel panel1;
-    private static double proportion = 0.8;
 
     private ImagePanel[] allViews = new ImagePanel[2];
     private String[] currentViews = new String[2];
+    private double proportion = 0.8;
     private int currentTargetedView = 1;
 
     private JMenuBar menuBar;

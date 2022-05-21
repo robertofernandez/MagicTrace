@@ -1,5 +1,7 @@
 package studio.itpex.magictrace.tests.ide;
 
+import static com.xuggle.xuggler.Global.DEFAULT_TIME_UNIT;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import java.awt.Dimension;
 import java.awt.MediaTracker;
 import java.awt.image.BufferedImage;
@@ -13,12 +15,16 @@ import javax.swing.JFrame;
 import org.apache.log4j.PropertyConfigurator;
 
 import com.github.sarxos.webcam.Webcam;
+import com.xuggle.mediatool.ToolFactory;
+import com.xuggle.mediatool.IMediaViewer;
+import com.xuggle.mediatool.IMediaWriter;
 
 import studio.itpex.images.color.ColorsUtils;
 import studio.itpex.images.mapping.ColorMap;
 import studio.itpex.images.utils.GeometryUtils;
 import studio.itpex.images.utils.ImageRepresentation;
 import studio.itpex.magictrace.tests.ide.panels.ImagePanel;
+
 
 public class MagicTraceTestIde extends JFrame {
 
@@ -31,6 +37,13 @@ public class MagicTraceTestIde extends JFrame {
     private ImagePanel cameraPanel;
     private ImagePanel tracePanel;
     private static double proportion = 0.8;
+    
+    static final long frameRate = DEFAULT_TIME_UNIT.convert(50, MILLISECONDS);
+    private static IMediaWriter writer;
+    private static int videoStreamIndex;
+    private static long nextFrameTime;
+    private static long currentFrame = 0;
+    private static boolean written = false;
 
     public static void main(String[] args) {
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
@@ -146,7 +159,19 @@ public class MagicTraceTestIde extends JFrame {
 
         ide.getCameraPanel().setMap(enlargedMap);
         // ide.getCameraPanel().updateImage();
-        System.out.println("Image updated");
+        //System.out.println("Image updated");
+        
+        if(currentFrame < 100) {
+            if(writer == null) {
+                writer = ToolFactory.makeWriter("test.mov");
+                writer.addListener(ToolFactory.makeViewer(IMediaViewer.Mode.VIDEO_ONLY, true,javax.swing.WindowConstants.EXIT_ON_CLOSE));
+                writer.addVideoStream(0, 0, image.getWidth(), image.getHeight());
+            }
+            writer.encodeVideo(videoStreamIndex, image, nextFrameTime, DEFAULT_TIME_UNIT);
+            nextFrameTime += frameRate;
+            currentFrame++;
+        }
+
     }
 
     private static void updateImageFromCurrentMap(ImagePanel panel, ColorMap currentMap) throws Exception {
@@ -163,6 +188,9 @@ public class MagicTraceTestIde extends JFrame {
     private static void updateImageFromCameraMixing(MagicTraceTestIde ide, Webcam webcam, ColorMap mixingMap,
             double proportion, CurrentMagicTraceTestIdeMaps currentMaps) throws Exception {
         BufferedImage lastCameraImage = webcam.getImage();
+        BufferedImage videoImage = new BufferedImage(320, 200, BufferedImage.TYPE_3BYTE_BGR);
+        //videoImage.getGraphics().se
+        lastCameraImage.copyData(videoImage.getRaster());
         System.out.println("Image retrieved");
         ImageRepresentation representation = new ImageRepresentation(lastCameraImage);
         ColorMap imageMap = new ColorMap(lastCameraImage.getWidth(), lastCameraImage.getHeight());
@@ -179,7 +207,24 @@ public class MagicTraceTestIde extends JFrame {
 
         ide.getCameraPanel().setMap(mixedMap);
         // ide.getCameraPanel().updateImage();
-        System.out.println("Image updated");
+        //System.out.println("Image updated");
+        if(currentFrame < 1000) {
+            if(writer == null) {
+                writer = ToolFactory.makeWriter("E:\\tmp\\img\\output\\testmt.mov");
+                //writer.addListener(ToolFactory.makeViewer(IMediaViewer.Mode.VIDEO_ONLY, true,javax.swing.WindowConstants.EXIT_ON_CLOSE));
+                //writer.addVideoStream(0, 0, lastCameraImage.getWidth(), lastCameraImage.getHeight());
+                writer.addVideoStream(0, 0, 320, 200);
+            }
+            
+			writer.encodeVideo(videoStreamIndex, videoImage, nextFrameTime, DEFAULT_TIME_UNIT);
+            nextFrameTime += frameRate;
+            currentFrame++;
+        } else {
+            if(!written ) {
+                written = true;
+                writer.close();
+            }
+        }
     }
 
 }
