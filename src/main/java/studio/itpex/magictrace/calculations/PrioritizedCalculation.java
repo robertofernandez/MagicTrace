@@ -1,4 +1,4 @@
-package studio.itpex.magictrace.tests.ide;
+package studio.itpex.magictrace.calculations;
 
 public class PrioritizedCalculation implements Comparable<PrioritizedCalculation> {
     private Integer priority;
@@ -21,4 +21,10 @@ public class PrioritizedCalculation implements Comparable<PrioritizedCalculation
     public Integer getPriority() {
         return priority;
     }
+
+    @Override
+    public String toString() {
+        return "[priority=" + priority + ", name=" + name + "]";
+    }
+
 }

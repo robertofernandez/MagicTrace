@@ -5,22 +5,20 @@ import studio.itpex.images.utils.GeometryUtils;
 
 public class ResizeMap implements FrameCalculation {
     private String mapName;
-    private double proportionX;
-    private double proportionY;
     private String calculatedMapName;
+    private CalculationsConfiguration configuration;
 
-    public ResizeMap(String mapName, String calculatedMapName, double proportionX, double proportionY) {
+    public ResizeMap(String mapName, String calculatedMapName, CalculationsConfiguration configuration) {
         this.mapName = mapName;
         this.calculatedMapName = calculatedMapName;
-        this.proportionX = proportionX;
-        this.proportionY = proportionY;
+        this.configuration = configuration;
     }
 
     @Override
     public void calculate(CalculatedMaps maps) throws Exception {
         ColorMap imageMap = maps.getAllMaps().get(mapName);
-        int width = (int) Math.round(imageMap.getWidth() * proportionX);
-        int height = (int) Math.round(imageMap.getHeight() * proportionY);
+        int width = (int) Math.round(imageMap.getWidth() * configuration.getNumber("resize-proportion-x"));
+        int height = (int) Math.round(imageMap.getHeight() * configuration.getNumber("resize-proportion-y"));
         ColorMap enlargedMap = GeometryUtils.enlargeRegion(imageMap, width, height, 0, 0, imageMap.getWidth(),
                 imageMap.getHeight());
         maps.getAllMaps().put(calculatedMapName, enlargedMap);

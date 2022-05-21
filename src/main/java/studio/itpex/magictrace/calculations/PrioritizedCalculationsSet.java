@@ -1,6 +1,7 @@
-package studio.itpex.magictrace.tests.ide;
+package studio.itpex.magictrace.calculations;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
 public class PrioritizedCalculationsSet {
@@ -12,6 +13,11 @@ public class PrioritizedCalculationsSet {
     }
 
     public ArrayList<PrioritizedCalculation> getCalculations() {
+        return calculations;
+    }
+
+    public ArrayList<PrioritizedCalculation> getSortedCalculations() {
+        Collections.sort(calculations);
         return calculations;
     }
 
@@ -38,6 +44,11 @@ public class PrioritizedCalculationsSet {
         PrioritizedCalculationsSet output = new PrioritizedCalculationsSet();
         output.getCalculations().addAll(mergedCalculations.values());
         return output;
+    }
+
+    @Override
+    public String toString() {
+        return calculations.toString();
     }
 
 }

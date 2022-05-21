@@ -11,7 +11,6 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.imageio.ImageIO;
@@ -26,13 +25,16 @@ import org.apache.log4j.PropertyConfigurator;
 
 import com.github.sarxos.webcam.Webcam;
 
-import studio.itpex.images.color.ColorsUtils;
 import studio.itpex.images.mapping.ColorMap;
 import studio.itpex.images.utils.GeometryUtils;
 import studio.itpex.images.utils.ImageRepresentation;
 import studio.itpex.magictrace.calculations.CalculatedMaps;
-import studio.itpex.magictrace.calculations.FrameCalculation;
+import studio.itpex.magictrace.calculations.CalculationsConfiguration;
+import studio.itpex.magictrace.calculations.CalculationsManager;
+import studio.itpex.magictrace.calculations.MapsMixing;
+import studio.itpex.magictrace.calculations.PrioritizedCalculationsSet;
 import studio.itpex.magictrace.calculations.ResizeMap;
+import studio.itpex.magictrace.calculations.WebcamScrapping;
 import studio.itpex.magictrace.tests.ide.panels.ImagePanel;
 
 public class MagicTraceTestIde3 extends JFrame {
@@ -41,7 +43,7 @@ public class MagicTraceTestIde3 extends JFrame {
     private static final String CONTRAST_TRACE_VIEW = "Contrast trace";
     private static final String TRANSPARENCY_TRACE_VIEW = "Transparency trace";
     private static final String CAMERA_VIEW = "Camera";
-    public static final String VERSION = "0.3";
+    public static final String VERSION = "0.4";
     private static final int FRAME_TIME = 50;
     public static final int desktopWidth = 1200;
     public static final int desktopHeight = 680;
@@ -50,9 +52,8 @@ public class MagicTraceTestIde3 extends JFrame {
     private ImagePanel panel0;
     private ImagePanel panel1;
 
-    private ImagePanel[] allViews = new ImagePanel[2];
+    private ImagePanel[] allPanelViews = new ImagePanel[2];
     private String[] currentViews = new String[2];
-    private double proportion = 0.8;
     private int currentTargetedView = 1;
 
     private JMenuBar menuBar;
@@ -63,9 +64,23 @@ public class MagicTraceTestIde3 extends JFrame {
     private JMenu viewsMenu;
     private ColorMap currentReferenceImageMap;
 
+    // private HashMap<String, FrameCalculation> calculationsByName;
+    // private PrioritizedCalculationsSet prioritizedCalculations;
     private CalculatedMaps calculatedMaps;
-    private HashMap<String, FrameCalculation> calculationsByName;
-    private PrioritizedCalculationsSet prioritizedCalculations;
+    private CalculationsManager calculationsManager;
+    private CalculationsConfiguration calculationsConfiguration;
+
+    private PrioritizedCalculationsSet defaultSet;
+    private PrioritizedCalculationsSet currentSet;
+
+    private FrameView cameraView;
+    private FrameView transparencyTraceView;
+    private FrameView contrastView;
+    private FrameView contrastTraceView;
+    private FrameView magicPaintTraceView;
+    
+    private HashMap<String, FrameView> frameViewByName;
+    private Webcam webcam;
 
     public static void main(String[] args) {
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
@@ -78,78 +93,34 @@ public class MagicTraceTestIde3 extends JFrame {
     protected static void createAndShowGUI() {
         //CurrentMagicTraceTestIdeMaps currentMaps = new CurrentMagicTraceTestIdeMaps();
         MagicTraceTestIde3 ide = new MagicTraceTestIde3();
-
         ide.pack();
         ide.setVisible(true);
         new Thread(new Runnable() {
-
             public void run() {
                 try {
                     ide.initialize();
-                    String log4jConfPath = "src/main/resources/config/log4j.properties";
-                    PropertyConfigurator.configure(log4jConfPath);
-                    System.out.println("About to start");
-                    Webcam webcam = Webcam.getDefault();
-                    System.out.println("opening camera");
-                    webcam.open();
-                    System.out.println("Camera open");
-
-                    File baseFile = new File("src/main/resources/img/base.png");
-
-                    BufferedImage referenceImage = null;
-                    ide.setCurrentReferenceImageMap(null);
-                    try {
-                        referenceImage = ImageIO.read(baseFile);
-
-                        // MediaTracker object is used to block the task
-                        // until image is loaded, or 10 seconds elapses
-                        // since load starting moment
-                        MediaTracker tracker = new MediaTracker(ide);
-                        tracker.addImage(referenceImage, 1);
-                        if (!tracker.waitForID(1, 30000)) {
-                            System.out.println("Error loading image");
-                            System.exit(1);
-                        }
-                    } catch (InterruptedException e) {
-                        System.out.println(e);
-                    } catch (IOException e) {
-                        System.out.println(e);
-                    }
-
-                    if (referenceImage != null) {
-                        ImageRepresentation teemoRepresentation = new ImageRepresentation(referenceImage);
-                        ColorMap baseReferenceImageMap = new ColorMap(referenceImage.getWidth(),
-                                referenceImage.getHeight());
-                        baseReferenceImageMap.setRed(teemoRepresentation.getRed());
-                        baseReferenceImageMap.setGreen(teemoRepresentation.getGreen());
-                        baseReferenceImageMap.setBlue(teemoRepresentation.getBlue());
-                        ide.setCurrentReferenceImageMap(baseReferenceImageMap);
-                        
-                        //updateImageFromCameraMixing(ide, webcam, baseReferenceImageMap, proportion, currentMaps);
-                    } else {
-                        updateImageFromCamera(ide, webcam);
-                    }
-
-                    // for (int i = 0; i < 190; i++) {
                     for (;;) {
                         // System.out.println("sleeping " + i);
                         Thread.sleep(FRAME_TIME);
-                        if (ide.getCurrentReferenceImageMap() != null) {
-//                            updateImageFromCameraMixing(ide, webcam, ide.getCurrentReferenceImageMap(), proportion,
-//                                    currentMaps);
-//                            updateImageFromCurrentMap(ide.getTracePanel(), currentMaps.getCameraMap());
-                        } else {
-                            updateImageFromCamera(ide, webcam);
-                        }
+                        ide.executeFrame();
                     }
                 } catch (Exception e) {
                     System.err.println(e.getMessage());
                 }
             }
         }).start();
+
     }
 
-    protected void initialize() {
+    protected void executeFrame() {
+        calculationsManager.executeCalculations(calculatedMaps);
+        FrameView frameView0 = frameViewByName.get(currentViews[0]);
+        FrameView frameView1 = frameViewByName.get(currentViews[1]);
+        allPanelViews[0].setMap(calculatedMaps.getAllMaps().get(frameView0.getMapNameToShow()));
+        allPanelViews[1].setMap(calculatedMaps.getAllMaps().get(frameView1.getMapNameToShow()));
+    }
+
+    protected void initialize() throws Exception {
         menuBar = new JMenuBar();
         operationsMenu = createOperationsMenu();
         fileMenu = createFilesMenu(this);
@@ -160,6 +131,40 @@ public class MagicTraceTestIde3 extends JFrame {
         menuBar.add(viewsMenu);
         menuBar.add(createProportionsMenu());
         setJMenuBar(menuBar);
+
+        String log4jConfPath = "src/main/resources/config/log4j.properties";
+        PropertyConfigurator.configure(log4jConfPath);
+        System.out.println("About to start");
+
+        File baseFile = new File("src/main/resources/img/base.png");
+
+        BufferedImage referenceImage = null;
+        try {
+            referenceImage = ImageIO.read(baseFile);
+
+            // MediaTracker object is used to block the task
+            // until image is loaded, or 10 seconds elapses
+            // since load starting moment
+            MediaTracker tracker = new MediaTracker(this);
+            tracker.addImage(referenceImage, 1);
+            if (!tracker.waitForID(1, 30000)) {
+                System.out.println("Error loading image");
+                System.exit(1);
+            }
+        } catch (InterruptedException e) {
+            System.out.println(e);
+        } catch (IOException e) {
+            System.out.println(e);
+        }
+
+        if (referenceImage != null) {
+            ImageRepresentation baseImageRepresentation = new ImageRepresentation(referenceImage);
+            ColorMap baseReferenceImageMap = new ColorMap(referenceImage.getWidth(), referenceImage.getHeight());
+            baseReferenceImageMap.setRed(baseImageRepresentation.getRed());
+            baseReferenceImageMap.setGreen(baseImageRepresentation.getGreen());
+            baseReferenceImageMap.setBlue(baseImageRepresentation.getBlue());
+            calculatedMaps.getAllMaps().put("reference-image", baseReferenceImageMap);
+        }
     }
 
     private JMenu createOperationsMenu() {
@@ -247,7 +252,7 @@ public class MagicTraceTestIde3 extends JFrame {
         cameraView.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                proportion = ((double) proportionPercentage) / 100;
+                calculationsConfiguration.setNumber("transparency-proportion", ((double) proportionPercentage) / 100);
             }
         });
     }
@@ -264,18 +269,57 @@ public class MagicTraceTestIde3 extends JFrame {
     }
 
     private void setView(String title) {
-        // FIXME implement
-
+        // FIXME complete, update calculations, update view
+        allPanelViews[currentTargetedView].setTitle(title);
+        currentViews[currentTargetedView] = title;
         trace("info", "View set to " + title);
     }
 
     public MagicTraceTestIde3() {
         this.setTitle("Magic Trace Test IDE " + VERSION);
-        mainDesktopPane = new JDesktopPane();
-        mainDesktopPane.setPreferredSize(new Dimension(desktopWidth, desktopHeight));
+
+        webcam = Webcam.getDefault();
+        System.out.println("Opening camera...");
+        webcam.open();
+        System.out.println("Camera open.");
+
+        calculationsConfiguration = new CalculationsConfiguration();
+        calculationsConfiguration.setNumber("resize-proportion-x", 2D);
+        calculationsConfiguration.setNumber("resize-proportion-y", 2D);
+        calculationsConfiguration.setNumber("transparency-proportion", 0.8D);
 
         calculatedMaps = new CalculatedMaps();
-        calculationsByName = new HashMap<>();
+        calculationsManager = new CalculationsManager();
+        calculationsManager.addCalculation("webcam-capture", new WebcamScrapping(webcam));
+        calculationsManager.addCalculation("webcam-resize",
+                new ResizeMap("webcam", "resized-webcam", calculationsConfiguration));
+        calculationsManager.addCalculation("mix-maps", new MapsMixing("resized-webcam", "reference-image",
+                "transparency-trace-image", calculationsConfiguration));
+
+        defaultSet = new PrioritizedCalculationsSet();
+        defaultSet.addCalculation(0, "webcam-capture");
+        defaultSet.addCalculation(1, "webcam-resize");
+
+        cameraView = new FrameView(CAMERA_VIEW, "resized-webcam");
+        // no further calculations as already in default set
+
+        transparencyTraceView = new FrameView(TRANSPARENCY_TRACE_VIEW, "transparency-trace-image");
+        transparencyTraceView.getCalculationsSet().addCalculation(3, "mix-maps");
+
+        frameViewByName = new HashMap<>();
+        frameViewByName.put(CAMERA_VIEW, cameraView);
+        frameViewByName.put(TRANSPARENCY_TRACE_VIEW, transparencyTraceView);
+
+        currentSet = defaultSet.merge(cameraView.getCalculationsSet())
+                .merge(transparencyTraceView.getCalculationsSet());
+
+        calculationsManager.setCalculationsSet(currentSet);
+        /*
+         * private FrameView contrastView; private FrameView contrastTraceView; private
+         * FrameView magicPaintTraceView;
+         */
+        mainDesktopPane = new JDesktopPane();
+        mainDesktopPane.setPreferredSize(new Dimension(desktopWidth, desktopHeight));
 
         panel0 = new ImagePanel("Panel 0");
         mainDesktopPane.add(panel0);
@@ -284,8 +328,8 @@ public class MagicTraceTestIde3 extends JFrame {
         mainDesktopPane.add(panel1);
         panel1.setLocation(650, 0);
 
-        allViews[0] = panel0;
-        allViews[1] = panel1;
+        allPanelViews[0] = panel0;
+        allPanelViews[1] = panel1;
 
         currentViews[0] = TRANSPARENCY_TRACE_VIEW;
         currentViews[1] = CAMERA_VIEW;
@@ -295,7 +339,7 @@ public class MagicTraceTestIde3 extends JFrame {
 
         panel1.setFocusable(true);
         panel0.setFocusable(true);
-        
+
         panel0.addFocusListener(new FocusListener() {
             @Override
             public void focusLost(FocusEvent e) {
@@ -307,14 +351,14 @@ public class MagicTraceTestIde3 extends JFrame {
                 System.out.println("view 0");
             }
         });
-        
+
         panel1.addFocusListener(new FocusListener() {
-            
+
             @Override
             public void focusLost(FocusEvent e) {
-                
+
             }
-            
+
             @Override
             public void focusGained(FocusEvent e) {
                 currentTargetedView = 1;
@@ -373,45 +417,10 @@ public class MagicTraceTestIde3 extends JFrame {
         // System.out.println("Image updated");
     }
 
-    private static void updateImageFromCurrentMap(ImagePanel panel, ColorMap currentMap) throws Exception {
-        panel.setMap(currentMap);
-        // panel.updateImage();
-    }
-
     private static void updateImageFromMap(ColorMap imageMap, MagicTraceTestIde3 ide) throws Exception {
         ide.getCameraPanel().setMap(imageMap);
         // ide.getCameraPanel().updateImage();
         System.out.println("Image updated");
-    }
-
-    private static void updateImageFromCameraMixing(MagicTraceTestIde3 ide, Webcam webcam, ColorMap mixingMap,
-            double proportion, CurrentMagicTraceTestIdeMaps currentMaps) throws Exception {
-        
-        //WebcamScrapping
-        
-        /*
-        BufferedImage lastCameraImage = webcam.getImage();
-        ImageRepresentation representation = new ImageRepresentation(lastCameraImage);
-        ColorMap imageMap = new ColorMap(lastCameraImage.getWidth(), lastCameraImage.getHeight());
-        imageMap.setRed(representation.getRed());
-        imageMap.setGreen(representation.getGreen());
-        imageMap.setBlue(representation.getBlue());
-        */
-
-        //ResizeMap rm = new ResizeMap("webcam", "double-sized-webcam", 2, 2);
-        
-//        ColorMap enlargedMap = GeometryUtils.enlargeRegion(imageMap, lastCameraImage.getWidth() * 2,
-//                lastCameraImage.getHeight() * 2, 0, 0, lastCameraImage.getWidth(), lastCameraImage.getHeight());
-
-        //MapsMixing
-        //ColorMap mixedMap = ColorsUtils.mixMaps(enlargedMap, mixingMap, proportion);
-
-//        currentMaps.setCameraMap(enlargedMap);
-//        currentMaps.setMixedMap(mixedMap);
-
-//        ide.getCameraPanel().setMap(mixedMap);
-        // ide.getCameraPanel().updateImage();
-        // System.out.println("Image updated");
     }
 
     private void setBaseSheet() {
@@ -433,5 +442,9 @@ public class MagicTraceTestIde3 extends JFrame {
 
     public ColorMap getCurrentReferenceImageMap() {
         return currentReferenceImageMap;
+    }
+
+    public Webcam getWebcam() {
+        return webcam;
     }
 }

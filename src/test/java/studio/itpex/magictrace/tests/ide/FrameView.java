@@ -1,11 +1,15 @@
 package studio.itpex.magictrace.tests.ide;
 
+import studio.itpex.magictrace.calculations.PrioritizedCalculationsSet;
+
 public class FrameView {
     private PrioritizedCalculationsSet calculationsSet;
     private String title;
+    private String mapNameToShow;
 
-    public FrameView(String title) {
+    public FrameView(String title, String mapNameToShow) {
         this.title = title;
+        this.mapNameToShow = mapNameToShow;
         calculationsSet = new PrioritizedCalculationsSet();
     }
 
@@ -19,5 +23,14 @@ public class FrameView {
 
     public String getTitle() {
         return title;
+    }
+
+    public String getMapNameToShow() {
+        return mapNameToShow;
+    }
+
+    @Override
+    public String toString() {
+        return "FrameView [title=" + title + ", mapNameToShow=" + mapNameToShow + "]";
     }
 }
