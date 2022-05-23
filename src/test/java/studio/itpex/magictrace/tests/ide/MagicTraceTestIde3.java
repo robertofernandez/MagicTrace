@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 import javax.swing.JDesktopPane;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -26,12 +27,12 @@ import org.apache.log4j.PropertyConfigurator;
 import com.github.sarxos.webcam.Webcam;
 
 import studio.itpex.images.mapping.ColorMap;
-import studio.itpex.images.utils.GeometryUtils;
 import studio.itpex.images.utils.ImageRepresentation;
 import studio.itpex.magictrace.calculations.CalculatedMaps;
 import studio.itpex.magictrace.calculations.CalculationsConfiguration;
 import studio.itpex.magictrace.calculations.CalculationsManager;
 import studio.itpex.magictrace.calculations.MapsMixing;
+import studio.itpex.magictrace.calculations.PaintUsingMagnitudeAndColors;
 import studio.itpex.magictrace.calculations.PrioritizedCalculationsSet;
 import studio.itpex.magictrace.calculations.ResizeMap;
 import studio.itpex.magictrace.calculations.WebcamScrapping;
@@ -78,7 +79,7 @@ public class MagicTraceTestIde3 extends JFrame {
     private FrameView contrastView;
     private FrameView contrastTraceView;
     private FrameView magicPaintTraceView;
-    
+
     private HashMap<String, FrameView> frameViewByName;
     private Webcam webcam;
 
@@ -91,7 +92,8 @@ public class MagicTraceTestIde3 extends JFrame {
     }
 
     protected static void createAndShowGUI() {
-        //CurrentMagicTraceTestIdeMaps currentMaps = new CurrentMagicTraceTestIdeMaps();
+        // CurrentMagicTraceTestIdeMaps currentMaps = new
+        // CurrentMagicTraceTestIdeMaps();
         MagicTraceTestIde3 ide = new MagicTraceTestIde3();
         ide.pack();
         ide.setVisible(true);
@@ -132,6 +134,9 @@ public class MagicTraceTestIde3 extends JFrame {
         menuBar.add(createProportionsMenu());
         setJMenuBar(menuBar);
 
+        ImageIcon logo = createImageIconFromAbsolutePath("img/icons/mt_icon.png", "Application Logo");
+        setIconImage(logo.getImage());
+
         String log4jConfPath = "src/main/resources/config/log4j.properties";
         PropertyConfigurator.configure(log4jConfPath);
         System.out.println("About to start");
@@ -165,6 +170,8 @@ public class MagicTraceTestIde3 extends JFrame {
             baseReferenceImageMap.setBlue(baseImageRepresentation.getBlue());
             calculatedMaps.getAllMaps().put("reference-image", baseReferenceImageMap);
         }
+
+        this.setExtendedState(MAXIMIZED_BOTH);
     }
 
     private JMenu createOperationsMenu() {
@@ -269,9 +276,13 @@ public class MagicTraceTestIde3 extends JFrame {
     }
 
     private void setView(String title) {
-        // FIXME complete, update calculations, update view
         allPanelViews[currentTargetedView].setTitle(title);
         currentViews[currentTargetedView] = title;
+        FrameView frameView0 = frameViewByName.get(currentViews[0]);
+        FrameView frameView1 = frameViewByName.get(currentViews[1]);
+        currentSet = defaultSet.merge(frameView0.getCalculationsSet())
+                .merge(frameView1.getCalculationsSet());
+        calculationsManager.setCalculationsSet(currentSet);
         trace("info", "View set to " + title);
     }
 
@@ -295,6 +306,8 @@ public class MagicTraceTestIde3 extends JFrame {
                 new ResizeMap("webcam", "resized-webcam", calculationsConfiguration));
         calculationsManager.addCalculation("mix-maps", new MapsMixing("resized-webcam", "reference-image",
                 "transparency-trace-image", calculationsConfiguration));
+        calculationsManager.addCalculation("paint-using-magnitude-and-colors",
+                new PaintUsingMagnitudeAndColors("reference-image", "resized-webcam", "painted-image-M&C1"));
 
         defaultSet = new PrioritizedCalculationsSet();
         defaultSet.addCalculation(0, "webcam-capture");
@@ -314,6 +327,11 @@ public class MagicTraceTestIde3 extends JFrame {
                 .merge(transparencyTraceView.getCalculationsSet());
 
         calculationsManager.setCalculationsSet(currentSet);
+
+        FrameView magicPaintTraceView = new FrameView(MAGIC_PAINT_TRACE_VIEW, "painted-image-M&C1");
+        magicPaintTraceView.getCalculationsSet().addCalculation(4, "paint-using-magnitude-and-colors");
+
+        frameViewByName.put(MAGIC_PAINT_TRACE_VIEW, magicPaintTraceView);
         /*
          * private FrameView contrastView; private FrameView contrastTraceView; private
          * FrameView magicPaintTraceView;
@@ -400,29 +418,6 @@ public class MagicTraceTestIde3 extends JFrame {
         return panel1;
     }
 
-    private static void updateImageFromCamera(MagicTraceTestIde3 ide, Webcam webcam) throws Exception {
-        BufferedImage image = webcam.getImage();
-        // System.out.println("Image retrieved");
-        ImageRepresentation representation = new ImageRepresentation(image);
-        ColorMap imageMap = new ColorMap(image.getWidth(), image.getHeight());
-        imageMap.setRed(representation.getRed());
-        imageMap.setGreen(representation.getGreen());
-        imageMap.setBlue(representation.getBlue());
-
-        ColorMap enlargedMap = GeometryUtils.enlargeRegion(imageMap, image.getWidth() * 2, image.getHeight() * 2, 0, 0,
-                image.getWidth(), image.getHeight());
-
-        ide.getCameraPanel().setMap(enlargedMap);
-        // ide.getCameraPanel().updateImage();
-        // System.out.println("Image updated");
-    }
-
-    private static void updateImageFromMap(ColorMap imageMap, MagicTraceTestIde3 ide) throws Exception {
-        ide.getCameraPanel().setMap(imageMap);
-        // ide.getCameraPanel().updateImage();
-        System.out.println("Image updated");
-    }
-
     private void setBaseSheet() {
         // FIXME implement set base sheet using current camera view
         trace("info", "Base sheet stored");
@@ -447,4 +442,9 @@ public class MagicTraceTestIde3 extends JFrame {
     public Webcam getWebcam() {
         return webcam;
     }
+
+    protected ImageIcon createImageIconFromAbsolutePath(String path, String description) {
+        return new ImageIcon(path, description);
+    }
+
 }

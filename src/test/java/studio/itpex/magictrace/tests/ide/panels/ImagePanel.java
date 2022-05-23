@@ -68,6 +68,9 @@ public class ImagePanel extends JInternalFrame {
     }
 
     public void setMap(ColorMap colorMap) {
+        if(colorMap == null) {
+            return;
+        }
         imageWidth = colorMap.getWidth();
         imageHeight = colorMap.getHeight();
         setRed(colorMap.getRed());
