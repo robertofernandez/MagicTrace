@@ -5,10 +5,10 @@ import java.awt.image.ImageObserver;
 import java.awt.image.PixelGrabber;
 import java.io.File;
 
-import studio.itpex.images.color.ColorValuesCollection;
+import ar.com.sodhium.commons.img.colors.values.ColorValuesCollection;
 
 /**
- * 
+ * FIXME merge with ImageRepresentation from commons-image project
  * @author Roberto G. Fernandez
  * 
  */
@@ -22,7 +22,6 @@ public class ImageRepresentation {
     private int[] green;
     private int[] blue;
     private int[] alpha;
-    // private OppScoutBotTestIde parentIde;
     private int id;
 
     public ImageRepresentation(BufferedImage image) {

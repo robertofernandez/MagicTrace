@@ -1,7 +1,7 @@
 package studio.itpex.magictrace.calculations;
 
-import studio.itpex.images.mapping.ColorMap;
-import studio.itpex.images.utils.GeometryUtils;
+import ar.com.sodhium.commons.img.colors.map.ColorMap;
+import ar.com.sodhium.commons.img.operations.GeometryUtils;
 
 public class ResizeMap implements FrameCalculation {
     private String mapName;

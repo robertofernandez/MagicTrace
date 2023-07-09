@@ -1,6 +1,6 @@
 package studio.itpex.magictrace.tests.ide;
 
-import studio.itpex.images.mapping.ColorMap;
+import ar.com.sodhium.commons.img.colors.map.ColorMap;
 
 public class CurrentMagicTraceTestIdeMaps {
 

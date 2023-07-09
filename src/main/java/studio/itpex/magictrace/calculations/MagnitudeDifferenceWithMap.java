@@ -1,8 +1,8 @@
 package studio.itpex.magictrace.calculations;
 
-import studio.itpex.images.color.MagnitudeUtils;
-import studio.itpex.images.color.RgbColor;
-import studio.itpex.images.mapping.ColorMap;
+import ar.com.sodhium.commons.img.colors.MagnitudeUtils;
+import ar.com.sodhium.commons.img.colors.RgbColor;
+import ar.com.sodhium.commons.img.colors.map.ColorMap;
 
 public class MagnitudeDifferenceWithMap implements FrameCalculation {
     private String colorMapName;

@@ -1,7 +1,8 @@
 package studio.itpex.images.mapping;
 
+import ar.com.sodhium.commons.img.colors.map.ColorMap;
+import ar.com.sodhium.commons.indexes.Indexer;
 import studio.itpex.java.utils.CoordinatesOperator;
-import studio.itpex.java.utils.Indexer;
 import studio.itpex.java.utils.OperatedIndexer;
 
 public class OperatedColorMap extends ColorMap {

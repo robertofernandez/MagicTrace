@@ -1,10 +1,12 @@
 package studio.itpex.java.utils;
 
+import ar.com.sodhium.commons.indexes.Indexer;
+
 public class OperatedIndexer extends Indexer {
     private CoordinatesOperator operator;
 
     public OperatedIndexer(Indexer baseIndexer, CoordinatesOperator operator) throws Exception {
-        super(baseIndexer.indexedArray, baseIndexer.width, baseIndexer.height);
+        super(baseIndexer);
         this.operator = operator;
     }
     

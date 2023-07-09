@@ -20,15 +20,14 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
-import java.awt.image.ImageObserver;
 import java.awt.image.MemoryImageSource;
 import java.awt.image.PixelGrabber;
 
 import javax.swing.JInternalFrame;
 import javax.swing.WindowConstants;
 
-import studio.itpex.images.mapping.ColorMap;
-import studio.itpex.images.mapping.GrayscaleMap;
+import ar.com.sodhium.commons.img.colors.map.ColorMap;
+import ar.com.sodhium.commons.img.colors.map.GrayscaleMap;
 
 /**
  * 

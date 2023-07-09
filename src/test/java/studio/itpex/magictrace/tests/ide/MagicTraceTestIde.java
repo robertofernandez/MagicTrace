@@ -19,9 +19,9 @@ import com.xuggle.mediatool.ToolFactory;
 import com.xuggle.mediatool.IMediaViewer;
 import com.xuggle.mediatool.IMediaWriter;
 
-import studio.itpex.images.color.ColorsUtils;
-import studio.itpex.images.mapping.ColorMap;
-import studio.itpex.images.utils.GeometryUtils;
+import ar.com.sodhium.commons.img.colors.ColorsUtils;
+import ar.com.sodhium.commons.img.colors.map.ColorMap;
+import ar.com.sodhium.commons.img.operations.GeometryUtils;
 import studio.itpex.images.utils.ImageRepresentation;
 import studio.itpex.magictrace.tests.ide.panels.ImagePanel;
 

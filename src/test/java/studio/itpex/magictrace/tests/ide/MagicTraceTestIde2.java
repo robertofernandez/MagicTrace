@@ -14,10 +14,10 @@ import org.apache.log4j.PropertyConfigurator;
 
 import com.github.sarxos.webcam.Webcam;
 
-import studio.itpex.images.color.ColorsUtils;
-import studio.itpex.images.color.PaintUtils;
-import studio.itpex.images.mapping.ColorMap;
-import studio.itpex.images.utils.GeometryUtils;
+import ar.com.sodhium.commons.img.colors.ColorsUtils;
+import ar.com.sodhium.commons.img.colors.PaintUtils;
+import ar.com.sodhium.commons.img.colors.map.ColorMap;
+import ar.com.sodhium.commons.img.operations.GeometryUtils;
 import studio.itpex.images.utils.ImageRepresentation;
 import studio.itpex.magictrace.tests.ide.panels.ImagePanel;
 

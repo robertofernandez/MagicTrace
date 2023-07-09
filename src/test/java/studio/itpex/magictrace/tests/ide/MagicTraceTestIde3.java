@@ -26,7 +26,7 @@ import org.apache.log4j.PropertyConfigurator;
 
 import com.github.sarxos.webcam.Webcam;
 
-import studio.itpex.images.mapping.ColorMap;
+import ar.com.sodhium.commons.img.colors.map.ColorMap;
 import studio.itpex.images.utils.ImageRepresentation;
 import studio.itpex.magictrace.calculations.CalculatedMaps;
 import studio.itpex.magictrace.calculations.CalculationsConfiguration;
