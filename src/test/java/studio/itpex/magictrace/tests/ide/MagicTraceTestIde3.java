@@ -31,10 +31,13 @@ import studio.itpex.images.utils.ImageRepresentation;
 import studio.itpex.magictrace.calculations.CalculatedMaps;
 import studio.itpex.magictrace.calculations.CalculationsConfiguration;
 import studio.itpex.magictrace.calculations.CalculationsManager;
+import studio.itpex.magictrace.calculations.MagnitudeDifferenceWithMap;
 import studio.itpex.magictrace.calculations.MapsMixing;
 import studio.itpex.magictrace.calculations.PaintUsingMagnitudeAndColors;
+import studio.itpex.magictrace.calculations.PaintUsingMagnitudeDifferencesAndColors;
 import studio.itpex.magictrace.calculations.PrioritizedCalculationsSet;
 import studio.itpex.magictrace.calculations.ResizeMap;
+import studio.itpex.magictrace.calculations.SetBaseMap;
 import studio.itpex.magictrace.calculations.WebcamScrapping;
 import studio.itpex.magictrace.tests.ide.panels.ImagePanel;
 
@@ -63,7 +66,6 @@ public class MagicTraceTestIde3 extends JFrame {
 
     private JMenu operationsMenu;
     private JMenu viewsMenu;
-    private ColorMap currentReferenceImageMap;
 
     // private HashMap<String, FrameCalculation> calculationsByName;
     // private PrioritizedCalculationsSet prioritizedCalculations;
@@ -82,6 +84,9 @@ public class MagicTraceTestIde3 extends JFrame {
 
     private HashMap<String, FrameView> frameViewByName;
     private Webcam webcam;
+
+    private SetBaseMap setBaseMapCalculation;
+    private WebcamScrapping webScrappingCalculation;
 
     public static void main(String[] args) {
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
@@ -184,6 +189,15 @@ public class MagicTraceTestIde3 extends JFrame {
                 setBaseSheet();
             }
         });
+        JMenuItem rotateCamera = new JMenuItem("Rotate camera");
+        menu.add(rotateCamera);
+        rotateCamera.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                webScrappingCalculation.rotate();
+            }
+        });
+        
         return menu;
     }
 
@@ -214,13 +228,13 @@ public class MagicTraceTestIde3 extends JFrame {
                         }
 
                         if (referenceImage != null) {
-                            ImageRepresentation teemoRepresentation = new ImageRepresentation(referenceImage);
+                            ImageRepresentation imageReferenceRepresentation = new ImageRepresentation(referenceImage);
                             ColorMap referenceImageMap = new ColorMap(referenceImage.getWidth(),
                                     referenceImage.getHeight());
-                            referenceImageMap.setRed(teemoRepresentation.getRed());
-                            referenceImageMap.setGreen(teemoRepresentation.getGreen());
-                            referenceImageMap.setBlue(teemoRepresentation.getBlue());
-                            ide.setCurrentReferenceImageMap(referenceImageMap);
+                            referenceImageMap.setRed(imageReferenceRepresentation.getRed());
+                            referenceImageMap.setGreen(imageReferenceRepresentation.getGreen());
+                            referenceImageMap.setBlue(imageReferenceRepresentation.getBlue());
+                            calculatedMaps.getAllMaps().put("reference-image", referenceImageMap);
                         }
                     } catch (InterruptedException ex) {
                         trace("error", ex.getMessage(), ex);
@@ -280,8 +294,7 @@ public class MagicTraceTestIde3 extends JFrame {
         currentViews[currentTargetedView] = title;
         FrameView frameView0 = frameViewByName.get(currentViews[0]);
         FrameView frameView1 = frameViewByName.get(currentViews[1]);
-        currentSet = defaultSet.merge(frameView0.getCalculationsSet())
-                .merge(frameView1.getCalculationsSet());
+        currentSet = defaultSet.merge(frameView0.getCalculationsSet()).merge(frameView1.getCalculationsSet());
         calculationsManager.setCalculationsSet(currentSet);
         trace("info", "View set to " + title);
     }
@@ -301,13 +314,18 @@ public class MagicTraceTestIde3 extends JFrame {
 
         calculatedMaps = new CalculatedMaps();
         calculationsManager = new CalculationsManager();
-        calculationsManager.addCalculation("webcam-capture", new WebcamScrapping(webcam));
+        webScrappingCalculation = new WebcamScrapping(webcam);
+        calculationsManager.addCalculation("webcam-capture", webScrappingCalculation);
         calculationsManager.addCalculation("webcam-resize",
                 new ResizeMap("webcam", "resized-webcam", calculationsConfiguration));
         calculationsManager.addCalculation("mix-maps", new MapsMixing("resized-webcam", "reference-image",
                 "transparency-trace-image", calculationsConfiguration));
         calculationsManager.addCalculation("paint-using-magnitude-and-colors",
                 new PaintUsingMagnitudeAndColors("reference-image", "resized-webcam", "painted-image-M&C1"));
+        calculationsManager.addCalculation("magnitude-difference-with-base",
+                new MagnitudeDifferenceWithMap("resized-webcam", "base-map", "magnitude-difference-base"));
+        calculationsManager.addCalculation("paint-using-magnitude-and-colors-contrasted",
+                new PaintUsingMagnitudeDifferencesAndColors("reference-image", "resized-webcam", "base-map", "painted-image-M&C2"));
 
         defaultSet = new PrioritizedCalculationsSet();
         defaultSet.addCalculation(0, "webcam-capture");
@@ -319,6 +337,8 @@ public class MagicTraceTestIde3 extends JFrame {
         transparencyTraceView = new FrameView(TRANSPARENCY_TRACE_VIEW, "transparency-trace-image");
         transparencyTraceView.getCalculationsSet().addCalculation(3, "mix-maps");
 
+        setBaseMapCalculation = new SetBaseMap("resized-webcam");
+
         frameViewByName = new HashMap<>();
         frameViewByName.put(CAMERA_VIEW, cameraView);
         frameViewByName.put(TRANSPARENCY_TRACE_VIEW, transparencyTraceView);
@@ -328,14 +348,21 @@ public class MagicTraceTestIde3 extends JFrame {
 
         calculationsManager.setCalculationsSet(currentSet);
 
-        FrameView magicPaintTraceView = new FrameView(MAGIC_PAINT_TRACE_VIEW, "painted-image-M&C1");
+        magicPaintTraceView = new FrameView(MAGIC_PAINT_TRACE_VIEW, "painted-image-M&C1");
         magicPaintTraceView.getCalculationsSet().addCalculation(4, "paint-using-magnitude-and-colors");
 
         frameViewByName.put(MAGIC_PAINT_TRACE_VIEW, magicPaintTraceView);
-        /*
-         * private FrameView contrastView; private FrameView contrastTraceView; private
-         * FrameView magicPaintTraceView;
-         */
+
+        contrastView = new FrameView(CONTRAST_VIEW, "magnitude-difference-base");
+        contrastView.getCalculationsSet().addCalculation(3, "magnitude-difference-with-base");
+
+        frameViewByName.put(CONTRAST_VIEW, contrastView);
+
+        contrastTraceView = new FrameView(CONTRAST_TRACE_VIEW, "painted-image-M&C2");
+        contrastTraceView.getCalculationsSet().addCalculation(3, "paint-using-magnitude-and-colors-contrasted");
+
+        frameViewByName.put(CONTRAST_TRACE_VIEW, contrastTraceView);
+
         mainDesktopPane = new JDesktopPane();
         mainDesktopPane.setPreferredSize(new Dimension(desktopWidth, desktopHeight));
 
@@ -419,8 +446,12 @@ public class MagicTraceTestIde3 extends JFrame {
     }
 
     private void setBaseSheet() {
-        // FIXME implement set base sheet using current camera view
-        trace("info", "Base sheet stored");
+        try {
+            setBaseMapCalculation.calculate(calculatedMaps);
+            trace("info", "Base sheet stored");
+        } catch (Exception e) {
+            trace("error", "Error storing base sheet stored", e);
+        }
     }
 
     private void trace(String level, String message) {
@@ -429,14 +460,6 @@ public class MagicTraceTestIde3 extends JFrame {
 
     private void trace(String level, String message, Exception ex) {
         System.out.println("[" + level + "] " + message + " -> " + ex.getStackTrace());
-    }
-
-    public void setCurrentReferenceImageMap(ColorMap currentReferenceImageMap) {
-        this.currentReferenceImageMap = currentReferenceImageMap;
-    }
-
-    public ColorMap getCurrentReferenceImageMap() {
-        return currentReferenceImageMap;
     }
 
     public Webcam getWebcam() {

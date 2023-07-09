@@ -52,7 +52,8 @@ public class PixelsSegmentsCluster {
     /**
      * 
      * @param segmentsOutput target where connected segments are added.
-     * @return The remaining segments disconnected with the bunch added to passed segmentsOutput parameter.
+     * @return The remaining segments disconnected with the bunch added to passed
+     *         segmentsOutput parameter.
      */
     public PixelsSegmentsCluster getConnectedSegments(ArrayList<PixelsSegment> segmentsOutput) {
         PixelsSegmentsCluster output = new PixelsSegmentsCluster(color);
@@ -93,7 +94,7 @@ public class PixelsSegmentsCluster {
     public HashMap<Integer, ArrayList<PixelsSegment>> getSegmentLists() {
         return segmentLists;
     }
-    
+
     public void internalMerge() {
         for (Entry<Integer, ArrayList<PixelsSegment>> entry : segmentLists.entrySet()) {
             segmentLists.put(entry.getKey(), mergeSegments(entry.getValue()));
@@ -105,16 +106,16 @@ public class PixelsSegmentsCluster {
         Collections.sort(input, new Comparator<PixelsSegment>() {
             @Override
             public int compare(PixelsSegment o1, PixelsSegment o2) {
-                return new Integer(o1.getStartX()).compareTo(o2.getStartX());
+                return Integer.valueOf(o1.getStartX()).compareTo(Integer.valueOf(o2.getStartX()));
             }
         });
         PixelsSegment lastSegment = null;
         for (PixelsSegment segment : input) {
-            if(lastSegment == null) {
+            if (lastSegment == null) {
                 lastSegment = segment;
                 output.add(segment);
             } else {
-                if(lastSegment.adjacent(segment)) {
+                if (lastSegment.adjacent(segment)) {
                     lastSegment.addSegment(segment);
                 } else {
                     lastSegment = segment;

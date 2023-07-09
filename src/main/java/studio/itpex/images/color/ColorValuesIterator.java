@@ -32,7 +32,7 @@ public class ColorValuesIterator implements Iterator<Integer> {
      * @see java.util.Iterator#next()
      */
     public Integer next() {
-        return new Integer(colorValues[index++]);
+        return Integer.valueOf(colorValues[index++]);
     }
 
     /*

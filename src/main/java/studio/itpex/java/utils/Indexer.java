@@ -7,9 +7,9 @@ package studio.itpex.java.utils;
  * 
  */
 public class Indexer {
-    private int[] indexedArray;
-    private int width;
-    private int height;
+    protected int[] indexedArray;
+    protected int width;
+    protected int height;
 
     public Indexer(int[] input, int width, int height) throws Exception {
         super();
@@ -51,8 +51,8 @@ public class Indexer {
     public void set(int value, int x, int y) {
         int index = y * width + x;
         if (index > indexedArray.length - 1 || index < 0) {
-            System.out.println((new Integer(x)).toString() + ", " + (new Integer(y)).toString());
-            System.out.println((new Integer(width)).toString() + ", " + (new Integer(height)).toString());
+            System.out.println((Integer.valueOf(x)).toString() + ", " + (Integer.valueOf(y)).toString());
+            System.out.println((Integer.valueOf(width)).toString() + ", " + (Integer.valueOf(height)).toString());
             return;
         }
         indexedArray[index] = value;
