@@ -12,8 +12,8 @@ public class Rotate180 implements CoordinatesOperator {
 
     @Override
     public Coordinates operate(Coordinates input) {
-        int x1 = width - input.getX();
-        int y1 = height - input.getY();
+        int x1 = width - 1 - input.getX();
+        int y1 = height - 1 - input.getY();
         return new Coordinates(x1, y1);
     }
 

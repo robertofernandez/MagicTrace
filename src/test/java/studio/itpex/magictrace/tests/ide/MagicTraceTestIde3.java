@@ -47,7 +47,7 @@ public class MagicTraceTestIde3 extends JFrame {
     private static final String CONTRAST_TRACE_VIEW = "Contrast trace";
     private static final String TRANSPARENCY_TRACE_VIEW = "Transparency trace";
     private static final String CAMERA_VIEW = "Camera";
-    public static final String VERSION = "0.4";
+    public static final String VERSION = "0.5";
     private static final int FRAME_TIME = 50;
     public static final int desktopWidth = 1200;
     public static final int desktopHeight = 680;
