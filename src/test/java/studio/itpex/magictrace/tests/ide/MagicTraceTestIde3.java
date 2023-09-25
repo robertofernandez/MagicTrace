@@ -197,7 +197,7 @@ public class MagicTraceTestIde3 extends JFrame {
                 webScrappingCalculation.rotate();
             }
         });
-        
+
         return menu;
     }
 
@@ -303,13 +303,25 @@ public class MagicTraceTestIde3 extends JFrame {
         this.setTitle("Magic Trace Test IDE " + VERSION);
 
         webcam = Webcam.getDefault();
+
+        Dimension lastResolution = null;
+        for (Dimension dimension : webcam.getDevice().getResolutions()) {
+            System.out.println("Available resolution: " + dimension.getWidth() + ", " + dimension.getHeight());
+            lastResolution = dimension;
+        }
+        System.out.println("Setting resolution to: " + lastResolution.getWidth() + ", " + lastResolution.getHeight());
+        webcam.getDevice().setResolution(lastResolution);
+        System.out.println("Resolution set to: " + lastResolution.getWidth() + ", " + lastResolution.getHeight());
+
         System.out.println("Opening camera...");
         webcam.open();
         System.out.println("Camera open.");
 
         calculationsConfiguration = new CalculationsConfiguration();
-        calculationsConfiguration.setNumber("resize-proportion-x", 2D);
-        calculationsConfiguration.setNumber("resize-proportion-y", 2D);
+        
+        //TODO update depending on max camera resolution
+        calculationsConfiguration.setNumber("resize-proportion-x", 1D);
+        calculationsConfiguration.setNumber("resize-proportion-y", 1D);
         calculationsConfiguration.setNumber("transparency-proportion", 0.8D);
 
         calculatedMaps = new CalculatedMaps();
@@ -325,7 +337,8 @@ public class MagicTraceTestIde3 extends JFrame {
         calculationsManager.addCalculation("magnitude-difference-with-base",
                 new MagnitudeDifferenceWithMap("resized-webcam", "base-map", "magnitude-difference-base"));
         calculationsManager.addCalculation("paint-using-magnitude-and-colors-contrasted",
-                new PaintUsingMagnitudeDifferencesAndColors("reference-image", "resized-webcam", "base-map", "painted-image-M&C2"));
+                new PaintUsingMagnitudeDifferencesAndColors("reference-image", "resized-webcam", "base-map",
+                        "painted-image-M&C2"));
 
         defaultSet = new PrioritizedCalculationsSet();
         defaultSet.addCalculation(0, "webcam-capture");
