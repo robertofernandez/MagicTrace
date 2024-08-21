@@ -7,19 +7,26 @@ import com.github.sarxos.webcam.Webcam;
 import ar.com.sodhium.commons.img.colors.map.ColorMap;
 import studio.itpex.images.mapping.OperatedColorMap;
 import studio.itpex.images.utils.ImageRepresentation;
+import studio.itpex.java.utils.Mirror;
 import studio.itpex.java.utils.Rotate180;
 
 public class WebcamScrapping implements FrameCalculation {
     private Webcam webcam;
     private boolean rotated;
+    private boolean mirrored;
 
     public WebcamScrapping(Webcam webcam) {
         this.webcam = webcam;
         rotated = false;
+        mirrored = false;
     }
     
     public void rotate() {
         rotated = !rotated;
+    }
+    
+    public void mirror() {
+        mirrored = !mirrored;
     }
 
     @Override
@@ -30,8 +37,13 @@ public class WebcamScrapping implements FrameCalculation {
         ColorMap imageMap = null;
         int width = lastCameraImage.getWidth();
         int height = lastCameraImage.getHeight();
+        //FIXME implement combined operations (pipeline?)
         if(!rotated) {
-            imageMap = new ColorMap(width, height);
+            if(!mirrored) {
+                imageMap = new ColorMap(width, height);
+            } else {
+                imageMap = new OperatedColorMap(width, height, new Mirror(width, height));
+            }
         } else {
             imageMap = new OperatedColorMap(width, height, new Rotate180(width, height));
         }
@@ -47,6 +59,14 @@ public class WebcamScrapping implements FrameCalculation {
     
     public boolean isRotated() {
         return rotated;
+    }
+    
+    public boolean isMirrored() {
+        return mirrored;
+    }
+
+    public void setMirrored(boolean mirrored) {
+        this.mirrored = mirrored;
     }
 
 }

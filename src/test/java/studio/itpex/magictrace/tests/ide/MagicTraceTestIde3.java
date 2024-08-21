@@ -198,6 +198,16 @@ public class MagicTraceTestIde3 extends JFrame {
             }
         });
 
+        JMenuItem mirrorCamera = new JMenuItem("Mirror camera");
+        menu.add(mirrorCamera);
+        mirrorCamera.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                webScrappingCalculation.mirror();
+            }
+        });
+
+
         return menu;
     }
 
